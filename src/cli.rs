@@ -54,7 +54,10 @@ use clap::Parser;
 /// ```
 ///
 /// The available options are:
-/// - `-p, --plantuml-only`: Skips the other steps and generates only the PlantUML representation of the code.
+/// - `-o, --output-file`: Give an output filename. If not specified, the
+/// output will be printed to stdout.
+/// - `-p, --plantuml-only`: Skips the other steps and generates only the
+/// PlantUML representation of the code.
 ///
 /// Note: This documentation assumes that the `clap` crate is available and provides the necessary functionality for parsing command-line arguments.
 #[derive(Parser, Debug)]
@@ -65,7 +68,7 @@ pub struct Cli {
     pub input_file: Option<String>,
 
     /// Output filename. If not specified, the output will be printed to stdout.
-    #[arg(group = "output")]
+    #[arg(short, long)]
     pub output_file: Option<String>,
 
     /// Skip the other steps and just generate the PlantUML of the code.

@@ -21,7 +21,7 @@
 
 use std::fs::File;
 use std::io;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::{PathBuf};
 use clap::Parser;
 use log::{debug};
@@ -31,93 +31,69 @@ use crate::plantuml_parser::PlantumlParser;
 mod cli;
 mod plantuml_parser;
 
+/// The main entry point of the program.
 fn main() {
-    env_logger::Builder::from_default_env()
-        .target(env_logger::Target::Stdout)
-        .init();
+    env_logger::init();
 
     let args = Cli::parse();
-    let run_all_tasks = match is_no_only_flag_set(&args) {
-        true => {
-            debug!("run all tasks");
-            true
-        },
-        false => false
-    };
 
-    // Create an input reader based on the availability of the input file argument
-    let mut input_reader: Box<dyn Read> = match args.input_file {
+    let input = read_input(&args.input_file);
+    let output = process_input(&input, &args);
+
+    write_output(&output, &args.output_file);
+}
+
+/// Reads the input from the specified input file or from stdin.
+/// Returns the input content as a string.
+fn read_input(input_file: &Option<String>) -> String {
+    let mut input_buffer = String::new();
+
+    match input_file {
         Some(input_file) => {
             let input_path = PathBuf::from(input_file);
             debug!("Input file is: {}", input_path.display());
-            Box::new(File::open(input_path).expect("Failed to open input file"))
+            let mut file = File::open(input_path).expect("Failed to open input file");
+            file.read_to_string(&mut input_buffer).expect("Failed to read input file");
         },
-        None => Box::new(io::stdin()),
+        None => {
+            io::stdin().read_to_string(&mut input_buffer).expect("Failed to read from stdin");
+        }
     };
 
-    // Read the input into a string buffer
-    let mut buffer = String::new();
-    input_reader.read_to_string(&mut buffer).expect("Failed to read input");
-
-    //Create an output file path when the argument is set else use stdout
-    let output_file = get_path_of_string(args.output_file.as_deref());
-
-    if run_all_tasks || args.plantuml_only {
-        let plantuml_string =
-            PlantumlParser::parse_code_to_string(&buffer);
-        debug!("PlantUML string: {}", plantuml_string);
-    }
+    input_buffer
 }
 
-/// Converts an optional string argument to a `PathBuf` or returns an error if
-/// no input file is specified.
-///
-/// This function takes an optional string argument `file_string` and attempts
-/// to convert it to a `PathBuf` representing a file path.
-/// If `file_string` is `Some`, it creates a `PathBuf` using the provided
-/// string and returns it as a successful `Result`.
-/// If `file_string` is `None`, it returns an error of type `io::Error` with
-/// an `InvalidInput` error kind, indicating that no input file was specified.
-///
-/// # Arguments
-///
-/// - `file_string`: An optional string slice (`&str`) representing the file path.
-///
-/// # Returns
-///
-/// A `Result` that contains either a `PathBuf` representing the file path or an error of type `io::Error`.
-///
-/// # Examples
-///
-/// ```rust
-/// use std::path::PathBuf;
-///
-/// let file_path = get_path_of_string(Some("/path/to/file.txt"));
-/// assert_eq!(file_path, Ok(PathBuf::from("/path/to/file.txt")));
-///
-/// let no_file_path = get_path_of_string(None);
-/// assert!(no_file_path.is_err());
-/// ```
-///
-/// In the above example, the `get_path_of_string` function is used to convert an optional string argument to a `PathBuf`.
-/// The first example demonstrates a successful conversion with a provided file path, while the second example shows an error returned when no input file is specified.
-///
-/// # Error Handling
-///
-/// If no input file is specified (i.e., `file_string` is `None`), the function returns an `io::Error` with an `InvalidInput` error kind.
-/// This error can be handled using standard Rust error handling techniques, such as pattern matching or the `?` operator.
-///
-/// # Panics
-///
-/// This function does not panic under normal circumstances.
-/// However, if an error occurs during the creation of the `PathBuf`, such as if the provided file path is invalid, a panic may occur.
-/// It is recommended to handle errors appropriately to avoid panics.
-fn get_path_of_string(file_string: Option<&str>) -> Result<PathBuf, io::Error> {
-    if let Some(path) = file_string {
-        return Ok(PathBuf::from(path));
+/// Processes the input content and generates the output content based on the provided arguments.
+/// Returns the output content as a string.
+fn process_input(input: &String, args: &Cli) -> String {
+    let mut output_buffer = String::new();
+
+    if is_processing_needed(args) {
+        let plantuml_string = PlantumlParser::parse_code_to_string(input);
+        output_buffer.push_str(&plantuml_string);
     }
 
-    Err(io::Error::new(io::ErrorKind::InvalidInput, "No input file specified"))
+    output_buffer
+}
+
+/// Writes the output content to the specified output file or to stdout.
+fn write_output(output: &str, output_file: &Option<String>) {
+    match output_file {
+        Some(output_file) => {
+            let output_path = PathBuf::from(output_file);
+            debug!("Output file is: {}", output_path.display());
+            let mut file = File::create(output_path).expect("Failed to create output file");
+            file.write_all(output.as_bytes()).expect("Failed to write output file");
+        },
+        None => {
+            io::stdout().write_all(output.as_bytes()).expect("Failed to write to stdout");
+        }
+    };
+}
+
+/// Checks if processing is needed based on the provided arguments.
+fn is_processing_needed(args: &Cli) -> bool {
+    args.plantuml_only || is_no_only_flag_set(args)
 }
 
 /// Returns true if no `only` flag is set.
