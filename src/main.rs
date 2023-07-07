@@ -27,9 +27,11 @@ use clap::Parser;
 use log::{debug};
 use crate::cli::Cli;
 use crate::plantuml_parser::PlantumlParser;
+use crate::rust_doc_parser::RustDocParser;
 
 mod cli;
 mod plantuml_parser;
+mod rust_doc_parser;
 
 /// The main entry point of the program.
 fn main() {
@@ -67,10 +69,29 @@ fn read_input(input_file: &Option<String>) -> String {
 /// Returns the output content as a string.
 fn process_input(input: &String, args: &Cli) -> String {
     let mut output_buffer = String::new();
+    let mut output_puml = String::new();
+    let mut output_markdown = String::new();
 
-    if is_processing_needed(args) {
+    if args.only_flags.plantuml_only || is_no_only_flag_set(args) {
         let plantuml_string = PlantumlParser::parse_code_to_string(input);
-        output_buffer.push_str(&plantuml_string);
+        output_puml.push_str(&plantuml_string);
+        if args.only_flags.plantuml_only {
+            output_buffer.push_str(output_puml.as_str());
+        }
+    }
+
+    if args.only_flags.markdown_only || is_no_only_flag_set(args) {
+        let markdown_string = RustDocParser::parse_code_doc_to_markdown_string(input);
+        output_markdown.push_str(&markdown_string);
+        if args.only_flags.markdown_only {
+            output_buffer.push_str(output_markdown.as_str());
+        }
+    }
+
+    if is_no_only_flag_set(args) {
+        output_buffer.push_str(&output_puml);
+        output_buffer.push('\n');
+        output_buffer.push_str(&output_markdown);
     }
 
     output_buffer
@@ -91,15 +112,10 @@ fn write_output(output: &str, output_file: &Option<String>) {
     };
 }
 
-/// Checks if processing is needed based on the provided arguments.
-fn is_processing_needed(args: &Cli) -> bool {
-    args.plantuml_only || is_no_only_flag_set(args)
-}
-
 /// Returns true if no `only` flag is set.
 /// Checks all only flags. If any of them is set, returns false.
 fn is_no_only_flag_set(args: &Cli) -> bool {
-    if args.plantuml_only {
+    if args.only_flags.plantuml_only || args.only_flags.markdown_only {
         return false;
     }
     true

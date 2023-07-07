@@ -1,4 +1,4 @@
-use clap::Parser;
+use clap::{Args, Parser};
 
 /// This struct represents the command-line arguments for the Rustitect.
 ///
@@ -60,18 +60,31 @@ use clap::Parser;
 /// PlantUML representation of the code.
 ///
 /// Note: This documentation assumes that the `clap` crate is available and provides the necessary functionality for parsing command-line arguments.
-#[derive(Parser, Debug)]
+#[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
+    #[command(flatten)]
+    pub only_flags: OnlyFlags,
     /// Input Rust source code file. If not specified, the input will be read from stdin
     #[arg(group = "input")]
     pub input_file: Option<String>,
 
     /// Output filename. If not specified, the output will be printed to stdout.
-    #[arg(short, long)]
+    #[arg(short, long, group = "output")]
     pub output_file: Option<String>,
+}
+
+
+#[derive(Args)]
+#[group(required = false, multiple = false)]
+pub struct OnlyFlags {
 
     /// Skip the other steps and just generate the PlantUML of the code.
     #[arg(short, long)]
     pub plantuml_only: bool,
+
+    /// Skip the other steps and just generate markdown.
+    #[arg(short, long)]
+    pub markdown_only: bool,
+
 }
