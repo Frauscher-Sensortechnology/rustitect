@@ -19,12 +19,14 @@
 //!
 //! Note: This documentation assumes that the `plantuml_generator` and `asciidoc_generator` crates provide the required functionality for diagram generation and Asciidoc generation, respectively. Please refer to their documentation for more accurate information.
 
+use std::fs::File;
 use std::io;
 use std::io::Read;
 use std::path::{PathBuf};
 use clap::Parser;
-use log::{debug, info};
+use log::{debug};
 use crate::cli::Cli;
+use crate::plantuml_parser::PlantumlParser;
 
 mod cli;
 mod plantuml_parser;
@@ -43,25 +45,27 @@ fn main() {
         false => false
     };
 
-    //Create an input file path when the argument is set else use stdin
-    let input_path = match get_path_of_string(args.input_file.as_deref()) {
-        Ok(path) => {
-            info!("Input file is: {}", path.display());
-            path
+    // Create an input reader based on the availability of the input file argument
+    let mut input_reader: Box<dyn Read> = match args.input_file {
+        Some(input_file) => {
+            let input_path = PathBuf::from(input_file);
+            debug!("Input file is: {}", input_path.display());
+            Box::new(File::open(input_path).expect("Failed to open input file"))
         },
-        Err(_) => {
-            info!("No input file given. Read from stdin");
-            let mut buffer = String::new();
-            io::stdin().read_to_string(&mut buffer).expect("Failed to read from stdin");
-            PathBuf::from(buffer.trim())
-        }
+        None => Box::new(io::stdin()),
     };
-    //TODO take care of the output file too
+
+    // Read the input into a string buffer
+    let mut buffer = String::new();
+    input_reader.read_to_string(&mut buffer).expect("Failed to read input");
 
     //Create an output file path when the argument is set else use stdout
-    // let output_file = get_path_of_string(args.output_file.as_deref());
+    let output_file = get_path_of_string(args.output_file.as_deref());
+
     if run_all_tasks || args.plantuml_only {
-        //TODO implement parsing an rust code file to PlantUML
+        let plantuml_string =
+            PlantumlParser::parse_code_to_string(&buffer);
+        debug!("PlantUML string: {}", plantuml_string);
     }
 }
 
