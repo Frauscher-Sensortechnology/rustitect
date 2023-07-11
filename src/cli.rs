@@ -60,7 +60,7 @@ use clap::{Args, Parser};
 /// PlantUML representation of the code.
 ///
 /// Note: This documentation assumes that the `clap` crate is available and provides the necessary functionality for parsing command-line arguments.
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
     #[command(flatten)]
@@ -75,7 +75,7 @@ pub struct Cli {
 }
 
 
-#[derive(Args)]
+#[derive(Args, Clone)]
 #[group(required = false, multiple = false)]
 pub struct OnlyFlags {
 
