@@ -25,13 +25,14 @@ use std::io::{Read, Write};
 use std::path::{PathBuf};
 use clap::Parser;
 use log::{debug};
+use processing::Processing;
 use crate::cli::Cli;
-use crate::plantuml_parser::PlantumlParser;
-use crate::rust_doc_parser::RustDocParser;
 
 mod cli;
-mod plantuml_parser;
+mod processing;
+mod class_object;
 mod rust_doc_parser;
+mod plantuml_parser;
 
 /// The main entry point of the program.
 fn main() {
@@ -40,7 +41,8 @@ fn main() {
     let args = Cli::parse();
 
     let input = read_input(&args.input_file);
-    let output = process_input(&input, &args);
+    let processing = Processing { args: args.clone() };
+    let output = processing.start(&input);
 
     write_output(&output, &args.output_file);
 }
@@ -65,38 +67,6 @@ fn read_input(input_file: &Option<String>) -> String {
     input_buffer
 }
 
-/// Processes the input content and generates the output content based on the provided arguments.
-/// Returns the output content as a string.
-fn process_input(input: &String, args: &Cli) -> String {
-    let mut output_buffer = String::new();
-    let mut output_puml = String::new();
-    let mut output_markdown = String::new();
-
-    if args.only_flags.plantuml_only || is_no_only_flag_set(args) {
-        let plantuml_string = PlantumlParser::parse_code_to_string(input);
-        output_puml.push_str(&plantuml_string);
-        if args.only_flags.plantuml_only {
-            output_buffer.push_str(output_puml.as_str());
-        }
-    }
-
-    if args.only_flags.markdown_only || is_no_only_flag_set(args) {
-        let markdown_string = RustDocParser::parse_code_doc_to_markdown_string(input);
-        output_markdown.push_str(&markdown_string);
-        if args.only_flags.markdown_only {
-            output_buffer.push_str(output_markdown.as_str());
-        }
-    }
-
-    if is_no_only_flag_set(args) {
-        output_buffer.push_str(&output_puml);
-        output_buffer.push('\n');
-        output_buffer.push_str(&output_markdown);
-    }
-
-    output_buffer
-}
-
 /// Writes the output content to the specified output file or to stdout.
 fn write_output(output: &str, output_file: &Option<String>) {
     match output_file {
@@ -110,13 +80,4 @@ fn write_output(output: &str, output_file: &Option<String>) {
             io::stdout().write_all(output.as_bytes()).expect("Failed to write to stdout");
         }
     };
-}
-
-/// Returns true if no `only` flag is set.
-/// Checks all only flags. If any of them is set, returns false.
-fn is_no_only_flag_set(args: &Cli) -> bool {
-    if args.only_flags.plantuml_only || args.only_flags.markdown_only {
-        return false;
-    }
-    true
 }
