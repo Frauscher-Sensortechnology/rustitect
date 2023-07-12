@@ -72,8 +72,11 @@ pub struct Cli {
     /// Output filename. If not specified, the output will be printed to stdout.
     #[arg(short, long, group = "output")]
     pub output_file: Option<String>,
-}
 
+    // Output format. If not specified, the output will be printed as AsciiDoc.
+    // #[arg(value_enum, short, long, group = "format")]
+    // pub format: OutputFormat,
+}
 
 #[derive(Args, Clone)]
 #[group(required = false, multiple = false)]
@@ -88,3 +91,12 @@ pub struct OnlyFlags {
     pub markdown_only: bool,
 
 }
+
+
+// #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+// pub enum OutputFormat {
+//     /// Output will be printed as AsciiDoc.
+//     Asciidoc,
+//     /// Output will be printed as Markdown.
+//     Markdown,
+// }

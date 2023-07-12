@@ -1,4 +1,4 @@
-
+use crate::asciidoc_parser::AsciidocParser;
 use crate::cli::Cli;
 use crate::plantuml_parser::PlantumlParser;
 use crate::rust_doc_parser::RustDocParser;
@@ -20,7 +20,9 @@ impl Processing {
     /// The processed output as a string.
     pub fn start(&self, input: &String) -> String {
         let output_buffer: String = if is_no_only_flag_set(&self.args) {
-            process_input(input)
+            let markdown_output = process_input(input);
+            let ascii_doc_parser = AsciidocParser::default();
+            ascii_doc_parser.parse_from_markdown(&markdown_output).unwrap()
         } else {
             process_input_only_flags(input, &self.args)
         };
@@ -96,6 +98,7 @@ mod tests {
             },
             input_file,
             output_file,
+            // format: OutputFormat::Asciidoc,
         }
     }
 

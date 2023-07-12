@@ -33,6 +33,7 @@ mod processing;
 mod class_object;
 mod rust_doc_parser;
 mod plantuml_parser;
+mod asciidoc_parser;
 
 /// The main entry point of the program.
 fn main() {
