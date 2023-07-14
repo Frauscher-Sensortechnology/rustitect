@@ -1,4 +1,4 @@
-use clap::{Args, Parser};
+use clap::{Args, Parser, ValueEnum};
 
 /// This struct represents the command-line arguments for the Rustitect.
 ///
@@ -73,9 +73,9 @@ pub struct Cli {
     #[arg(short, long, group = "output")]
     pub output_file: Option<String>,
 
-    // Output format. If not specified, the output will be printed as AsciiDoc.
-    // #[arg(value_enum, short, long, group = "format")]
-    // pub format: OutputFormat,
+    /// Format for the output. If not specified, asciidoc will be used.
+    #[arg(short, long, default_value = "asciidoc")]
+    pub format: OutputFormat,
 }
 
 #[derive(Args, Clone)]
@@ -92,11 +92,8 @@ pub struct OnlyFlags {
 
 }
 
-
-// #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-// pub enum OutputFormat {
-//     /// Output will be printed as AsciiDoc.
-//     Asciidoc,
-//     /// Output will be printed as Markdown.
-//     Markdown,
-// }
+#[derive(ValueEnum, Clone, Debug, PartialEq)]
+pub enum OutputFormat {
+    Asciidoc,
+    Markdown,
+}

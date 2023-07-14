@@ -30,10 +30,8 @@ use crate::cli::Cli;
 
 mod cli;
 mod processing;
-mod class_object;
-mod rust_doc_parser;
-mod plantuml_parser;
-mod asciidoc_parser;
+mod parser;
+mod model;
 
 /// The main entry point of the program.
 fn main() {

@@ -1,7 +1,7 @@
-use crate::asciidoc_parser::AsciidocParser;
-use crate::cli::Cli;
-use crate::plantuml_parser::PlantumlParser;
-use crate::rust_doc_parser::RustDocParser;
+use crate::cli::{Cli, OutputFormat};
+use crate::parser::asciidoc_parser::AsciidocParser;
+use crate::parser::plantuml_parser::PlantumlParser;
+use crate::parser::rust_doc_parser::RustDocParser;
 
 /// Processing struct that handles the processing of input based on the provided arguments.
 pub struct Processing {
@@ -21,8 +21,12 @@ impl Processing {
     pub fn start(&self, input: &String) -> String {
         let output_buffer: String = if is_no_only_flag_set(&self.args) {
             let markdown_output = process_input(input);
-            let ascii_doc_parser = AsciidocParser::default();
-            ascii_doc_parser.parse_from_markdown(&markdown_output).unwrap()
+            if self.args.format == OutputFormat::Markdown {
+                markdown_output
+            } else {
+                let ascii_doc_parser = AsciidocParser::new(None);
+                ascii_doc_parser.parse_from_markdown(&markdown_output).expect("Failed to parse markdown to asciidoc")
+            }
         } else {
             process_input_only_flags(input, &self.args)
         };
@@ -67,7 +71,7 @@ fn process_input(input: &String) -> String {
     documentation.plantuml = plantuml;
 
     output_buffer.push_str(format!("## {}\n", documentation.name).as_str());
-    output_buffer.push_str(format!("{}\n", documentation.plantuml).as_str());
+    output_buffer.push_str(format!("```plantuml\n{}\n```\n", documentation.plantuml).as_str());
     output_buffer.push_str(format!("\n{}\n", documentation.documentation).as_str());
 
     output_buffer
@@ -90,7 +94,7 @@ mod tests {
     use super::*;
 
     // Helper function to mock the Cli struct.
-    fn create_mock_cli(input_file: Option<String>, output_file: Option<String>, plantuml_only: bool, markdown_only: bool ) -> Cli {
+    fn create_mock_cli(input_file: Option<String>, output_file: Option<String>, plantuml_only: bool, markdown_only: bool, format: OutputFormat) -> Cli {
         Cli {
             only_flags : OnlyFlags {
                 plantuml_only,
@@ -98,13 +102,13 @@ mod tests {
             },
             input_file,
             output_file,
-            // format: OutputFormat::Asciidoc,
+            format,
         }
     }
 
     #[test]
     fn only_flag_plantuml() {
-        let cli_mock = create_mock_cli(None, None, true, false);
+        let cli_mock = create_mock_cli(None, None, true, false, OutputFormat::Asciidoc);
         let raw_rust_code = String::from(
             r#"
             struct TestStruct {
@@ -125,7 +129,7 @@ mod tests {
     }
     #[test]
     fn only_flag_markdown() {
-        let cli_mock = create_mock_cli(None, None, false, true);
+        let cli_mock = create_mock_cli(None, None, false, true, OutputFormat::Asciidoc);
         let raw_rust_code = String::from(
             r#"
             struct TestStruct {
@@ -147,8 +151,12 @@ mod tests {
 
     #[test]
     fn test_process_input() {
-        let cli_mock = create_mock_cli(None, None, false, false);
-        let mut rust_file = fs::File::open("resources/simple_struct.rs").expect("File not found.");
+        let cli_mock = create_mock_cli(None, None, false, false, OutputFormat::Asciidoc);
+        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+        let file_path = std::path::Path::new(&manifest_dir).join("resources/simple_struct.rs");
+
+        let mut rust_file = fs::File::open(file_path).expect("File not found.");
+        // let mut rust_file = fs::File::open("resources/simple_struct.rs").expect("File not found.");
         let mut raw_rust_code = String::new();
         rust_file.read_to_string(&mut raw_rust_code).expect("Could not read file.");
         let expected_headline = " Person";
@@ -161,5 +169,33 @@ mod tests {
 
         assert!(output.contains(expected_headline));
         assert!(output.contains(expected_plantuml));
+    }
+
+    #[test]
+    fn test_process_input_format_markdown() {
+        let cli_mock = create_mock_cli(None, None, false, false, OutputFormat::Markdown);
+        let raw_rust_code = String::from("struct Person { name: String }");
+        let expected_headline = "## Person";
+
+        let processing = Processing {
+            args: cli_mock,
+        };
+        let output = processing.start(&raw_rust_code);
+
+        assert!(output.contains(expected_headline));
+    }
+
+    #[test]
+    fn test_process_input_format_asciidoc() {
+        let cli_mock = create_mock_cli(None, None, false, false, OutputFormat::Asciidoc);
+        let raw_rust_code = String::from("struct Person { name: String }");
+        let expected_headline = "== Person";
+
+        let processing = Processing {
+            args: cli_mock,
+        };
+        let output = processing.start(&raw_rust_code);
+
+        assert!(output.contains(expected_headline));
     }
 }

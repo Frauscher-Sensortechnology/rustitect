@@ -1,5 +1,5 @@
 use syn::Item;
-use crate::class_object::Class;
+use crate::model::class_object::Class;
 
 /// RustDocParser struct used for parsing Rust code documentation.
 #[derive(Default)]
@@ -49,7 +49,7 @@ impl RustDocParser {
                         }
                     }
                     struct_documentation.push('\n');
-                }
+                },
                 _ => {}
             }
         }
