@@ -4,12 +4,22 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 use log::{error};
 
-/// `AsciidocParser` is a struct that provides functionality to convert text to
-/// AsciiDoc format.
-#[derive(Default)]
-pub struct AsciidocParser {}
+pub struct AsciidocParser {
+    pandoc_path: String,
+}
 
 impl AsciidocParser {
+    pub fn new(pandoc_path: Option<String>) -> Self {
+        let pandoc_path = pandoc_path.unwrap_or_else(|| {
+            env::var("PANDOC_PATH").unwrap_or_else(|_| String::from("pandoc"))
+        });
+
+        AsciidocParser {
+            pandoc_path,
+        }
+    }
+
+
 
     /// Converts the provided Markdown text to AsciiDoc format.
     ///
@@ -97,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_parse_from_markdown() {
-        let parser = AsciidocParser::default();
+        let parser = AsciidocParser::new(None);
         let markdown_text = "# Title\n\n## Subtitle\n\nSome text";
 
         let result = parser.parse_from_markdown(markdown_text);
@@ -110,16 +120,12 @@ mod tests {
     #[test]
     fn test_parse_from_markdown_error() {
         //Save the environment variable PANDOC_PATH before changing it
-        let pandoc_path = env::var("PANDOC_PATH").unwrap_or_else(|_| String::from("pandoc"));
-        std::env::set_var("PANDOC_PATH", "/invalid/path/to/pandoc");
+        let invalid_pandoc_path = "/invalid/path/to/pandoc";
 
-        let parser = AsciidocParser::default();
+        let parser = AsciidocParser::new(Some(String::from(invalid_pandoc_path)));
         let markdown_text = "# Title\n\n## Subtitle\n\nSome text";
         let result = parser.parse_from_markdown(markdown_text);
         assert!(result.is_err());
-
-        //Restore the environment variable PANDOC_PATH
-        std::env::set_var("PANDOC_PATH", pandoc_path);
     }
 
 }
