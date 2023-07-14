@@ -23,7 +23,7 @@ impl Person {
     /// ```
     /// let person = Person::new(String::from("John Doe"), 25, true);
     /// ```
-    fn new(name: String, age: u32, is_active: bool) -> Self {
+    pub fn new(name: String, age: u32, is_active: bool) -> Self {
         Person {
             name,
             age,

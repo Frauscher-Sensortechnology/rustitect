@@ -25,7 +25,8 @@ impl Processing {
                 markdown_output
             } else {
                 let ascii_doc_parser = AsciidocParser::new(None);
-                ascii_doc_parser.parse_from_markdown(&markdown_output).expect("Failed to parse markdown to asciidoc")
+                let asciidoc_output = ascii_doc_parser.parse_from_markdown(&markdown_output).expect("Failed to parse markdown to asciidoc");
+                asciidoc_output.replace("[source,plantuml]", "[plantuml]")
             }
         } else {
             process_input_only_flags(input, &self.args)

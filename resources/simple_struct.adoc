@@ -1,0 +1,16 @@
+== Person
+
+[plantuml]
+----
+@startuml
+
+class "Person" {
+    + name: String
+    + age: u32
+    + is_active: bool
+}
+
+@enduml
+----
+
+Represents a person with a name, age, and activity status.
