@@ -104,6 +104,7 @@ mod tests {
             input_file,
             output_file,
             format,
+            preserve_names: false
         }
     }
 

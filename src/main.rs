@@ -37,13 +37,29 @@ mod model;
 fn main() {
     env_logger::init();
 
-    let args = Cli::parse();
+    let mut args = Cli::parse();
 
     let input = read_input(&args.input_file);
     let processing = Processing { args: args.clone() };
     let output = processing.start(&input);
 
+    handle_preserve_names_and_set_output_file(&mut args);
     write_output(&output, &args.output_file);
+}
+
+fn handle_preserve_names_and_set_output_file(mut args: &mut Cli) {
+    //TODO take care that preserve names is just possible when an input file is given and not stdout
+    if args.preserve_names {
+        let input_path = PathBuf::from(args.input_file.as_ref().unwrap());
+        let name = input_path.file_stem().unwrap().to_str().unwrap();
+        //get the extennsion of the output format
+        let extension = match args.format {
+            cli::OutputFormat::Asciidoc => ".adoc",
+            cli::OutputFormat::Markdown => ".md",
+        };
+
+        args.output_file = Some(format!("{name}{extension}"));
+    }
 }
 
 /// Reads the input from the specified input file or from stdin.

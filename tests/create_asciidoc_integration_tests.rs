@@ -53,6 +53,28 @@ fn test_main_asciidoc_output_is_correct() {
     assert_eq!(output_as_string, expected_output);
 }
 
+#[test]
+fn test_main_asciidoc_preserve_name() {
+    let path = path_of_project_exe();
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+    let input_file_path = std::path::Path::new(&manifest_dir)
+        .join("resources/simple_struct.rs");
+    let expected_output_file = std::path::Path::new(&manifest_dir)
+        .join("simple_struct.adoc");
+
+    let output = Command::new(path)
+        .args(input_file_path.to_str())
+        .args(["--preserve-names"])
+        .output()
+        .expect("Failed to execute command");
+
+    assert!(output.status.success());
+    assert!(expected_output_file.exists());
+
+    //CLEAN UP
+    std::fs::remove_file(expected_output_file).unwrap();
+}
+
 fn path_of_project_exe() -> PathBuf {
     let cargo_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let project_name = std::env::var("CARGO_PKG_NAME").unwrap();

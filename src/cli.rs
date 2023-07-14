@@ -76,6 +76,11 @@ pub struct Cli {
     /// Format for the output. If not specified, asciidoc will be used.
     #[arg(short, long, default_value = "asciidoc")]
     pub format: OutputFormat,
+
+    /// Preserve names will get the name of the input file and put the same to
+    /// the output file including the output format
+    #[arg(long)]
+    pub preserve_names: bool,
 }
 
 #[derive(Args, Clone)]
