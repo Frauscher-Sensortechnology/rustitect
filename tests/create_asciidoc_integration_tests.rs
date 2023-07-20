@@ -1,7 +1,7 @@
 use std::process::Command;
 use std::path::PathBuf;
 use std::fs::File;
-use std::io::{Read};
+use std::io::{Read, Write};
 
 #[test]
 fn test_main_without_arguments() {
@@ -73,6 +73,25 @@ fn test_main_asciidoc_preserve_name() {
 
     //CLEAN UP
     std::fs::remove_file(expected_output_file).unwrap();
+}
+
+#[test]
+fn test_main_preserve_name_only_with_input_file() {
+    let path = path_of_project_exe();
+
+    let mut command = Command::new(path)
+        .stdin(std::process::Stdio::piped())
+        .args(["--preserve-names"])
+        .spawn()
+        .expect("Failed to spawn command");
+
+    // Write data to `stdin` of the command process and wait to complete
+    let stdin = command.stdin.as_mut().expect("Failed to open stdin");
+    stdin.write_all(b"class-input-data.").expect("Failed to write to stdin");
+    let output = command.wait_with_output().expect("Failed to wait for command");
+
+    assert!(!output.status.success());
+    assert_eq!(output.status.code(), Some(101));
 }
 
 fn path_of_project_exe() -> PathBuf {

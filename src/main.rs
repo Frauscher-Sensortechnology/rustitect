@@ -23,10 +23,11 @@ use std::fs::File;
 use std::io;
 use std::io::{Read, Write};
 use std::path::{PathBuf};
-use clap::Parser;
+use clap::error::ErrorKind;
+use clap::{CommandFactory, Parser};
 use log::{debug};
 use processing::Processing;
-use crate::cli::Cli;
+use crate::cli::{Cli, OutputFormat};
 
 mod cli;
 mod processing;
@@ -39,26 +40,38 @@ fn main() {
 
     let mut args = Cli::parse();
 
+    handle_preserve_names_and_set_output_file(&mut args);
+
     let input = read_input(&args.input_file);
     let processing = Processing { args: args.clone() };
     let output = processing.start(&input);
 
-    handle_preserve_names_and_set_output_file(&mut args);
     write_output(&output, &args.output_file);
 }
 
 fn handle_preserve_names_and_set_output_file(mut args: &mut Cli) {
-    //TODO take care that preserve names is just possible when an input file is given and not stdout
+    let stdin = PathBuf::from("-");
     if args.preserve_names {
         let input_path = PathBuf::from(args.input_file.as_ref().unwrap());
-        let name = input_path.file_stem().unwrap().to_str().unwrap();
-        //get the extennsion of the output format
-        let extension = match args.format {
-            cli::OutputFormat::Asciidoc => ".adoc",
-            cli::OutputFormat::Markdown => ".md",
-        };
 
-        args.output_file = Some(format!("{name}{extension}"));
+        if input_path == stdin {
+            let mut cmd = Cli::command();
+            cmd.error(
+                ErrorKind::ArgumentConflict,
+                "Can't preserve names, when input is stdin",
+            ).exit();
+        } else {
+            let name = input_path.file_stem().unwrap().to_str().unwrap();
+            let extension = get_output_format_extension(&args.format);
+            args.output_file = Some(format!("{name}{extension}"));
+        }
+    }
+}
+
+fn get_output_format_extension(format: &OutputFormat) -> &str {
+    match format {
+        OutputFormat::Asciidoc => ".adoc",
+        OutputFormat::Markdown => ".md",
     }
 }
 
