@@ -1,13 +1,13 @@
-use syn::Item;
-use crate::model::class_object::Class;
+use syn::{Fields, ImplItem, Item, ItemStruct};
+use crate::model::class_object::{Class, Method};
 
 /// RustDocParser struct used for parsing Rust code documentation.
 #[derive(Default)]
 pub struct RustDocParser {
     pub(crate) raw_rust_code: String,
 }
-impl RustDocParser {
 
+impl RustDocParser {
     /// Parses the code documentation and returns it as a Markdown-formatted string.
     ///
     /// # Returns
@@ -30,8 +30,9 @@ impl RustDocParser {
     pub fn parse_code_doc(&self) -> Class {
         let parsed_file = syn::parse_file(&self.raw_rust_code).unwrap();
 
-        let mut struct_name= String::new();
-        let mut struct_documentation= String::new();
+        let mut struct_name = String::new();
+        let mut struct_documentation = String::new();
+        let mut methods = Vec::new();
         for item in parsed_file.items {
             match item {
                 Item::Struct(item_struct) => {
@@ -49,7 +50,34 @@ impl RustDocParser {
                         }
                     }
                     struct_documentation.push('\n');
-                },
+
+                    // Collect information about methods and their documentation
+                    if let Fields::Named(fields) = &item_struct.fields {
+                        for field in &fields.named {
+                            let method_name = field.ident.as_ref().unwrap().to_string();
+                            let mut method_documentation = String::new();
+
+                            for attribute in &field.attrs {
+                                let meta = attribute.parse_meta().unwrap();
+                                if let syn::Meta::NameValue(name_value) = meta {
+                                    if name_value.path.is_ident("doc") {
+                                        if let syn::Lit::Str(lit_str) = name_value.lit {
+                                            method_documentation.push_str(&lit_str.value().trim());
+                                            method_documentation.push('\n');
+                                        }
+                                    }
+                                }
+                            }
+
+                            let method = Method {
+                                name: method_name,
+                                documentation: method_documentation,
+                            };
+
+                            methods.push(method);
+                        }
+                    }
+                }
                 _ => {}
             }
         }
@@ -57,7 +85,7 @@ impl RustDocParser {
             plantuml: String::new(),
             name: struct_name,
             documentation: struct_documentation,
-            methods: Vec::new(),
+            methods: methods,
         };
     }
 }
