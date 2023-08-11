@@ -1,6 +1,4 @@
-# Rustitect
-
-
+# Rustitect<img src="logo.png" alt="Rustitect Logo" style="width:100px"/>
 
 ## Getting started
 
