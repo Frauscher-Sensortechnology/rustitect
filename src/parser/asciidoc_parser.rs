@@ -1,8 +1,9 @@
-use std::{env, io};
 use std::error::Error;
 use std::io::Write;
 use std::process::{Command, Stdio};
-use log::{error};
+use std::{env, io};
+
+use log::error;
 
 pub struct AsciidocParser {
     pandoc_path: String,
@@ -10,16 +11,11 @@ pub struct AsciidocParser {
 
 impl AsciidocParser {
     pub fn new(pandoc_path: Option<String>) -> Self {
-        let pandoc_path = pandoc_path.unwrap_or_else(|| {
-            env::var("PANDOC_PATH").unwrap_or_else(|_| String::from("pandoc"))
-        });
+        let pandoc_path = pandoc_path
+            .unwrap_or_else(|| env::var("PANDOC_PATH").unwrap_or_else(|_| String::from("pandoc")));
 
-        AsciidocParser {
-            pandoc_path,
-        }
+        AsciidocParser { pandoc_path }
     }
-
-
 
     /// Converts the provided Markdown text to AsciiDoc format.
     ///
@@ -31,11 +27,9 @@ impl AsciidocParser {
     ///
     /// * `Ok(String)` - The converted AsciiDoc text.
     /// * `Err(Box<dyn Error>)` - An error occurred during the conversion process.
-    pub fn parse_from_markdown(&self, markdown_text: &str) -> Result<String, Box<dyn Error>>  {
+    pub fn parse_from_markdown(&self, markdown_text: &str) -> Result<String, Box<dyn Error>> {
         match self.convert_with_pandoc(markdown_text, Format::Markdown, Format::Asciidoc) {
-            Ok(result) => {
-                Ok(result)
-            },
+            Ok(result) => Ok(result),
             Err(e) => {
                 error!("Error while converting Markdown to AsciiDoc: {}", e);
                 Err(e.into())
@@ -59,8 +53,12 @@ impl AsciidocParser {
     ///
     /// * `Ok(String)` - The converted text.
     /// * `Err(io::Error)` - An error occurred during the conversion process.
-    fn convert_with_pandoc(&self, input: &str, input_format: Format, output_format: Format) -> io::Result<String> {
-
+    fn convert_with_pandoc(
+        &self,
+        input: &str,
+        input_format: Format,
+        output_format: Format,
+    ) -> io::Result<String> {
         let mut child = Command::new(self.pandoc_path.as_str())
             .arg("-f")
             .arg(input_format.as_str())
@@ -80,7 +78,10 @@ impl AsciidocParser {
         if output.status.success() {
             Ok(std::str::from_utf8(&output.stdout).unwrap().to_string())
         } else {
-            Err(io::Error::new(io::ErrorKind::Other, std::str::from_utf8(&output.stderr).unwrap()))
+            Err(io::Error::new(
+                io::ErrorKind::Other,
+                std::str::from_utf8(&output.stderr).unwrap(),
+            ))
         }
     }
 }
@@ -127,5 +128,4 @@ mod tests {
         let result = parser.parse_from_markdown(markdown_text);
         assert!(result.is_err());
     }
-
 }

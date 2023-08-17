@@ -25,7 +25,9 @@ impl Processing {
                 markdown_output
             } else {
                 let ascii_doc_parser = AsciidocParser::new(None);
-                let asciidoc_output = ascii_doc_parser.parse_from_markdown(&markdown_output).expect("Failed to parse markdown to asciidoc");
+                let asciidoc_output = ascii_doc_parser
+                    .parse_from_markdown(&markdown_output)
+                    .expect("Failed to parse markdown to asciidoc");
                 asciidoc_output.replace("[source,plantuml]", "[plantuml]")
             }
         } else {
@@ -44,14 +46,18 @@ fn process_input_only_flags(input: &String, args: &Cli) -> String {
     let mut output_markdown = String::new();
 
     if args.only_flags.plantuml_only {
-        let plantuml_parser = PlantumlParser{ raw_rust_code: String::from(input) };
+        let plantuml_parser = PlantumlParser {
+            raw_rust_code: String::from(input),
+        };
         let plantuml_string = plantuml_parser.parse_code_to_string();
         output_puml.push_str(&plantuml_string);
         output_buffer.push_str(output_puml.as_str());
     }
 
     if args.only_flags.markdown_only {
-        let markdown_parser = RustDocParser{ raw_rust_code: String::from(input) };
+        let markdown_parser = RustDocParser {
+            raw_rust_code: String::from(input),
+        };
         let markdown_string = markdown_parser.parse_code_doc_to_markdown_string();
         output_markdown.push_str(&markdown_string);
         output_buffer.push_str(output_markdown.as_str());
@@ -64,8 +70,12 @@ fn process_input_only_flags(input: &String, args: &Cli) -> String {
 /// Returns the output content as a [String].
 fn process_input(input: &String) -> String {
     let mut output_buffer = String::new();
-    let plantuml_parser = PlantumlParser{ raw_rust_code: String::from(input) };
-    let doc_parser = RustDocParser{ raw_rust_code: String::from(input) };
+    let plantuml_parser = PlantumlParser {
+        raw_rust_code: String::from(input),
+    };
+    let doc_parser = RustDocParser {
+        raw_rust_code: String::from(input),
+    };
 
     let plantuml = plantuml_parser.parse_code_to_string();
     let mut documentation = doc_parser.parse_code_doc();
@@ -76,7 +86,7 @@ fn process_input(input: &String) -> String {
     output_buffer.push_str(format!("\n{}\n", documentation.documentation).as_str());
 
     //output each method with its documentation in an markdown list
-for method in documentation.methods {
+    for method in documentation.methods {
         output_buffer.push_str(format!("\n### {}\n", method.name).as_str());
         output_buffer.push_str(format!("{}\n", method.documentation).as_str());
     }
@@ -97,20 +107,28 @@ fn is_no_only_flag_set(args: &Cli) -> bool {
 mod tests {
     use std::fs;
     use std::io::Read;
+
     use crate::cli::OnlyFlags;
+
     use super::*;
 
     // Helper function to mock the Cli struct.
-    fn create_mock_cli(input_file: Option<String>, output_file: Option<String>, plantuml_only: bool, markdown_only: bool, format: OutputFormat) -> Cli {
+    fn create_mock_cli(
+        input_file: Option<String>,
+        output_file: Option<String>,
+        plantuml_only: bool,
+        markdown_only: bool,
+        format: OutputFormat,
+    ) -> Cli {
         Cli {
-            only_flags : OnlyFlags {
+            only_flags: OnlyFlags {
                 plantuml_only,
                 markdown_only,
             },
             input_file,
             output_file,
             format,
-            preserve_names: false
+            preserve_names: false,
         }
     }
 
@@ -127,9 +145,7 @@ mod tests {
         let expected_content = "@startuml";
         let not_expected_content = "## ";
 
-        let processing = Processing {
-            args: cli_mock,
-        };
+        let processing = Processing { args: cli_mock };
         let output = processing.start(&raw_rust_code);
 
         assert!(output.contains(expected_content));
@@ -148,9 +164,7 @@ mod tests {
         let expected_content = "## ";
         let not_expected_content = "@startuml";
 
-        let processing = Processing {
-            args: cli_mock,
-        };
+        let processing = Processing { args: cli_mock };
         let output = processing.start(&raw_rust_code);
 
         assert!(output.contains(expected_content));
@@ -166,13 +180,13 @@ mod tests {
         let mut rust_file = fs::File::open(file_path).expect("File not found.");
         // let mut rust_file = fs::File::open("resources/simple_struct.rs").expect("File not found.");
         let mut raw_rust_code = String::new();
-        rust_file.read_to_string(&mut raw_rust_code).expect("Could not read file.");
+        rust_file
+            .read_to_string(&mut raw_rust_code)
+            .expect("Could not read file.");
         let expected_headline = " Person";
         let expected_plantuml = "class \"Person\"";
 
-        let processing = Processing {
-            args: cli_mock,
-        };
+        let processing = Processing { args: cli_mock };
         let output = processing.start(&raw_rust_code);
 
         assert!(output.contains(expected_headline));
@@ -185,9 +199,7 @@ mod tests {
         let raw_rust_code = String::from("struct Person { name: String }");
         let expected_headline = "## Person";
 
-        let processing = Processing {
-            args: cli_mock,
-        };
+        let processing = Processing { args: cli_mock };
         let output = processing.start(&raw_rust_code);
 
         assert!(output.contains(expected_headline));
@@ -199,9 +211,7 @@ mod tests {
         let raw_rust_code = String::from("struct Person { name: String }");
         let expected_headline = "== Person";
 
-        let processing = Processing {
-            args: cli_mock,
-        };
+        let processing = Processing { args: cli_mock };
         let output = processing.start(&raw_rust_code);
 
         assert!(output.contains(expected_headline));

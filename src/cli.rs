@@ -86,7 +86,6 @@ pub struct Cli {
 #[derive(Args, Clone)]
 #[group(required = false, multiple = false)]
 pub struct OnlyFlags {
-
     /// Skip the other steps and just generate the PlantUML of the code.
     #[arg(short, long)]
     pub plantuml_only: bool,
@@ -94,7 +93,6 @@ pub struct OnlyFlags {
     /// Skip the other steps and just generate markdown.
     #[arg(short, long)]
     pub markdown_only: bool,
-
 }
 
 #[derive(ValueEnum, Clone, Debug, PartialEq)]

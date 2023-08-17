@@ -1,4 +1,5 @@
-use syn::{Fields, ImplItem, Item, ItemStruct};
+use syn::{Fields, Item};
+
 use crate::model::class_object::{Class, Method};
 
 /// RustDocParser struct used for parsing Rust code documentation.
@@ -96,23 +97,26 @@ mod tests {
 
     /// Code string to use it in the tests
     fn test_rust_code() -> String {
-        String::from(r#"
+        String::from(
+            r#"
             /// This is a doc comment
             /// over multiple lines
             struct TestStruct {
                 /// This is a doc comment
                 field: String,
             }
-            "#)
+            "#,
+        )
     }
 
     #[test]
     fn test_parse_code_doc_to_markdown_string_struct_title() {
-        let expected_markdown = String::from(
-            "## TestStruct\n\nThis is a doc comment\nover multiple lines\n\n"
-        );
+        let expected_markdown =
+            String::from("## TestStruct\n\nThis is a doc comment\nover multiple lines\n\n");
 
-        let parser = RustDocParser { raw_rust_code: test_rust_code() };
+        let parser = RustDocParser {
+            raw_rust_code: test_rust_code(),
+        };
         let markdown = parser.parse_code_doc_to_markdown_string();
 
         assert_eq!(markdown, expected_markdown);
@@ -121,9 +125,12 @@ mod tests {
     #[test]
     fn test_parse_code_doc_name_and_documentation() {
         let expected_struct_name = String::from("TestStruct");
-        let expected_struct_documentation = String::from("This is a doc comment\nover multiple lines\n\n");
+        let expected_struct_documentation =
+            String::from("This is a doc comment\nover multiple lines\n\n");
 
-        let parser = RustDocParser { raw_rust_code: test_rust_code() };
+        let parser = RustDocParser {
+            raw_rust_code: test_rust_code(),
+        };
         let class_object = parser.parse_code_doc();
 
         assert_eq!(class_object.name, expected_struct_name);

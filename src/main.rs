@@ -22,17 +22,20 @@
 use std::fs::File;
 use std::io;
 use std::io::{Read, Write};
-use std::path::{PathBuf};
+use std::path::PathBuf;
+
 use clap::error::ErrorKind;
 use clap::{CommandFactory, Parser};
-use log::{debug};
+use log::debug;
+
 use processing::Processing;
+
 use crate::cli::{Cli, OutputFormat};
 
 mod cli;
-mod processing;
-mod parser;
 mod model;
+mod parser;
+mod processing;
 
 /// The main entry point of the program.
 fn main() {
@@ -49,7 +52,7 @@ fn main() {
     write_output(&output, &args.output_file);
 }
 
-fn handle_preserve_names_and_set_output_file(mut args: &mut Cli) {
+fn handle_preserve_names_and_set_output_file(args: &mut Cli) {
     let stdin = PathBuf::from("-");
     if args.preserve_names {
         let input_path = PathBuf::from(args.input_file.as_ref().unwrap());
@@ -59,7 +62,8 @@ fn handle_preserve_names_and_set_output_file(mut args: &mut Cli) {
             cmd.error(
                 ErrorKind::ArgumentConflict,
                 "Can't preserve names, when input is stdin",
-            ).exit();
+            )
+            .exit();
         } else {
             let name = input_path.file_stem().unwrap().to_str().unwrap();
             let extension = get_output_format_extension(&args.format);
@@ -85,10 +89,13 @@ fn read_input(input_file: &Option<String>) -> String {
             let input_path = PathBuf::from(input_file);
             debug!("Input file is: {}", input_path.display());
             let mut file = File::open(input_path).expect("Failed to open input file");
-            file.read_to_string(&mut input_buffer).expect("Failed to read input file");
-        },
+            file.read_to_string(&mut input_buffer)
+                .expect("Failed to read input file");
+        }
         None => {
-            io::stdin().read_to_string(&mut input_buffer).expect("Failed to read from stdin");
+            io::stdin()
+                .read_to_string(&mut input_buffer)
+                .expect("Failed to read from stdin");
         }
     };
 
@@ -102,10 +109,13 @@ fn write_output(output: &str, output_file: &Option<String>) {
             let output_path = PathBuf::from(output_file);
             debug!("Output file is: {}", output_path.display());
             let mut file = File::create(output_path).expect("Failed to create output file");
-            file.write_all(output.as_bytes()).expect("Failed to write output file");
-        },
+            file.write_all(output.as_bytes())
+                .expect("Failed to write output file");
+        }
         None => {
-            io::stdout().write_all(output.as_bytes()).expect("Failed to write to stdout");
+            io::stdout()
+                .write_all(output.as_bytes())
+                .expect("Failed to write to stdout");
         }
     };
 }
