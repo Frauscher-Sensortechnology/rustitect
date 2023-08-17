@@ -11,7 +11,7 @@ description = "A tool to generate Rust code from a given architecture descriptio
 [dependencies]
 log = "0.4"
 env_logger = "0.10"
-ruml = "0.1"
+ruml = { git = "https://github.com/fichtelmann/ruml.git", branch = "add_methods" }
 
 [dependencies.clap]
 version = "4.3"
