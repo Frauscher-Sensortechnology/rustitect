@@ -97,6 +97,31 @@ fn test_main_preserve_name_only_with_input_file() {
     assert_eq!(output.status.code(), Some(101));
 }
 
+#[test]
+fn test_asciidoc_plantuml_format_generates_two_files() {
+    let path = path_of_project_exe();
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+    let input_file_path = std::path::Path::new(&manifest_dir).join("resources/simple_struct.rs");
+    let expected_output_file_adoc = std::path::Path::new(&manifest_dir).join("simple_struct.adoc");
+    let expected_output_file_puml = std::path::Path::new(&manifest_dir).join("simple_struct.puml");
+
+    let output = Command::new(path)
+        .args(["--preserve-names"])
+        .args(["--format", "asciidoc-plantuml"])
+        .args(input_file_path.to_str())
+        .output()
+        .expect("Failed to execute command");
+
+    assert!(output.status.success());
+    println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+    assert!(expected_output_file_adoc.exists());
+    assert!(expected_output_file_puml.exists());
+    //TODO compare the full file content
+
+    std::fs::remove_file(expected_output_file_adoc).unwrap();
+    std::fs::remove_file(expected_output_file_puml).unwrap();
+}
+
 fn path_of_project_exe() -> PathBuf {
     let cargo_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let project_name = std::env::var("CARGO_PKG_NAME").unwrap();

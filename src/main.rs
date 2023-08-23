@@ -19,10 +19,11 @@
 //!
 //! Note: This documentation assumes that the `plantuml_generator` and `asciidoc_generator` crates provide the required functionality for diagram generation and Asciidoc generation, respectively. Please refer to their documentation for more accurate information.
 
+use std::collections::HashMap;
 use std::fs::File;
 use std::io;
 use std::io::{Read, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use clap::error::ErrorKind;
 use clap::{CommandFactory, Parser};
@@ -49,7 +50,7 @@ fn main() {
     let processing = Processing { args: args.clone() };
     let output = processing.start(&input);
 
-    write_output(&output, &args.output_file);
+    write_output(output, &args.output_file);
 }
 
 fn handle_preserve_names_and_set_output_file(args: &mut Cli) {
@@ -75,7 +76,9 @@ fn handle_preserve_names_and_set_output_file(args: &mut Cli) {
 fn get_output_format_extension(format: &OutputFormat) -> &str {
     match format {
         OutputFormat::Asciidoc => ".adoc",
+        OutputFormat::AsciidocPlantuml => ".puml",
         OutputFormat::Markdown => ".md",
+        OutputFormat::Plantuml => ".puml",
     }
 }
 
@@ -103,18 +106,31 @@ fn read_input(input_file: &Option<String>) -> String {
 }
 
 /// Writes the output content to the specified output file or to stdout.
-fn write_output(output: &str, output_file: &Option<String>) {
+fn write_output(output: HashMap<OutputFormat, String>, output_file: &Option<String>) {
     match output_file {
         Some(output_file) => {
-            let output_path = PathBuf::from(output_file);
-            debug!("Output file is: {}", output_path.display());
-            let mut file = File::create(output_path).expect("Failed to create output file");
-            file.write_all(output.as_bytes())
-                .expect("Failed to write output file");
+            let file_name = Path::new(output_file)
+                .file_stem()
+                .unwrap()
+                .to_str()
+                .unwrap();
+            for (format, content) in output {
+                let extension = get_output_format_extension(&format);
+                let output_file_name = format!("{}{}", file_name, extension);
+                let mut file =
+                    File::create(output_file_name).expect("Failed to create output file");
+                file.write_all(content.as_bytes())
+                    .expect("Failed to write output file");
+            }
         }
         None => {
+            let output_content = output
+                .values()
+                .map(|content| content.to_string())
+                .collect::<Vec<String>>()
+                .join("\n");
             io::stdout()
-                .write_all(output.as_bytes())
+                .write_all(output_content.as_bytes())
                 .expect("Failed to write to stdout");
         }
     };

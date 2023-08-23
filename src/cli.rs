@@ -74,6 +74,8 @@ pub struct Cli {
     pub output_file: Option<String>,
 
     /// Format for the output. If not specified, asciidoc will be used.
+    /// If 'asciidoc-plantuml' is specified, the output will be in asciidoc
+    /// format including the PlantUML as file.
     #[arg(short, long, default_value = "asciidoc")]
     pub format: OutputFormat,
 
@@ -95,8 +97,10 @@ pub struct OnlyFlags {
     pub markdown_only: bool,
 }
 
-#[derive(ValueEnum, Clone, Debug, PartialEq)]
+#[derive(ValueEnum, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum OutputFormat {
     Asciidoc,
+    AsciidocPlantuml,
     Markdown,
+    Plantuml,
 }

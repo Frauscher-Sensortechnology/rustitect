@@ -29,7 +29,10 @@ impl AsciidocParser {
     /// * `Err(Box<dyn Error>)` - An error occurred during the conversion process.
     pub fn parse_from_markdown(&self, markdown_text: &str) -> Result<String, Box<dyn Error>> {
         match self.convert_with_pandoc(markdown_text, Format::Markdown, Format::Asciidoc) {
-            Ok(result) => Ok(result),
+            Ok(result) => {
+                let result = result.replace("[source,plantuml]", "[plantuml]");
+                Ok(result)
+            }
             Err(e) => {
                 error!("Error while converting Markdown to AsciiDoc: {}", e);
                 Err(e.into())
