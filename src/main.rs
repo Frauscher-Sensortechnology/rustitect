@@ -31,6 +31,7 @@ use log::debug;
 
 use processing::Processing;
 
+use crate::cli::OutputFormat::AsciidocPlantuml;
 use crate::cli::{Cli, OutputFormat};
 
 mod cli;
@@ -114,7 +115,11 @@ fn write_output(output: HashMap<OutputFormat, String>, output_file: &Option<Stri
                 .unwrap()
                 .to_str()
                 .unwrap();
-            for (format, content) in output {
+            let output_is_combined = output.contains_key(&AsciidocPlantuml);
+            for (format, mut content) in output {
+                if output_is_combined && format == OutputFormat::Asciidoc {
+                    content = content.replace("FILENAME", file_name);
+                }
                 let extension = get_output_format_extension(&format);
                 let output_file_name = format!("{}{}", file_name, extension);
                 let mut file =

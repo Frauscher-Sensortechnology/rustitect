@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::ops::Add;
 
+use regex::Regex;
+
 use crate::cli::{Cli, OutputFormat};
 use crate::parser::asciidoc_parser::AsciidocParser;
 use crate::parser::plantuml_parser::PlantumlParser;
@@ -30,13 +32,14 @@ impl Processing {
                 output_buffer.insert(OutputFormat::Markdown, markdown_output);
             } else {
                 let ascii_doc_parser = AsciidocParser::new(None);
-                let asciidoc_output = ascii_doc_parser
+                let mut asciidoc_output = ascii_doc_parser
                     .parse_from_markdown(&markdown_output)
                     .expect("Failed to parse markdown to asciidoc");
 
                 if self.args.format == OutputFormat::AsciidocPlantuml {
                     let plantuml_code = extract_plantuml_from_asciidoc(&asciidoc_output);
                     output_buffer.insert(OutputFormat::AsciidocPlantuml, plantuml_code);
+                    asciidoc_output = replace_puml_with_include(&asciidoc_output);
                 }
                 output_buffer.insert(OutputFormat::Asciidoc, asciidoc_output);
             }
@@ -48,16 +51,30 @@ impl Processing {
     }
 }
 
+fn replace_puml_with_include(asciidoc_string: &str) -> String {
+    let replacement = "plantuml::FILENAME.puml[]";
+    // This regex will be more flexible in capturing potential whitespace variations.
+    let pattern = r"(?s)\[plantuml\][\n\r]+----[\n\r]+.*?@enduml[\n\r]+----";
+    let regex = Regex::new(pattern).unwrap();
+    let new_string = regex.replace_all(asciidoc_string, replacement).to_string();
+    new_string
+}
+
 fn extract_plantuml_from_asciidoc(asciidoc_output: &str) -> String {
     let start_tag = "@startuml";
     let end_tag = "@enduml";
+    let lines = get_string_within_tags(asciidoc_output, start_tag, end_tag);
+    lines.add(format!("\n{end_tag}\n").as_str())
+}
+
+fn get_string_within_tags(asciidoc_output: &str, start_tag: &str, end_tag: &str) -> String {
     let mut lines = asciidoc_output
         .lines()
         .skip_while(|line| !line.trim().starts_with(start_tag))
         .take_while(|line| !line.trim().starts_with(end_tag))
         .collect::<Vec<&str>>()
         .join("\n");
-    lines.add(end_tag)
+    lines.to_string()
 }
 
 /// Processes the input content and generates the output content based on the provided only flags.

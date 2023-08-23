@@ -35,23 +35,26 @@ fn test_main_help_is_printed() {
 fn test_main_asciidoc_output_is_correct() {
     let path = path_of_project_exe();
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
-    let file_path = std::path::Path::new(&manifest_dir).join("resources/simple_struct.adoc");
     let input_file_path = std::path::Path::new(&manifest_dir).join("resources/simple_struct.rs");
-    let mut expected_output = String::new();
-    let mut file = File::open(file_path.clone()).expect("Failed to open input file");
-    file.read_to_string(&mut expected_output)
-        .expect("Failed to read input file");
-
-    println!("file_path: {}", file_path.to_str().unwrap());
+    let file_path = std::path::Path::new(&manifest_dir).join("resources/simple_struct.adoc");
+    let expected_output = read_file_content_to_string(&file_path);
 
     let output = Command::new(path)
         .args(input_file_path.to_str())
         .output()
         .expect("Failed to execute command");
 
-    let output_as_string = String::from_utf8_lossy(&output.stdout);
+    let output_as_string = String::from_utf8_lossy(&output.stdout).replace("\r\n", "\n");
     assert!(output.status.success());
     assert_eq!(output_as_string, expected_output);
+}
+
+fn read_file_content_to_string(file_path: &PathBuf) -> String {
+    let mut file_content = String::new();
+    let mut file = File::open(file_path.clone()).expect("Failed to open input file");
+    file.read_to_string(&mut file_content)
+        .expect("Failed to read input file");
+    file_content.replace("\r\n", "\n")
 }
 
 #[test]
@@ -102,8 +105,14 @@ fn test_asciidoc_plantuml_format_generates_two_files() {
     let path = path_of_project_exe();
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let input_file_path = std::path::Path::new(&manifest_dir).join("resources/simple_struct.rs");
+    let expected_file_adoc =
+        std::path::Path::new(&manifest_dir).join("resources/simple_struct_puml.adoc");
+    let expected_file_puml =
+        std::path::Path::new(&manifest_dir).join("resources/simple_struct.puml");
     let expected_output_file_adoc = std::path::Path::new(&manifest_dir).join("simple_struct.adoc");
     let expected_output_file_puml = std::path::Path::new(&manifest_dir).join("simple_struct.puml");
+    let expected_asciidoc = read_file_content_to_string(&expected_file_adoc);
+    let expected_plantuml = read_file_content_to_string(&expected_file_puml);
 
     let output = Command::new(path)
         .args(["--preserve-names"])
@@ -116,7 +125,14 @@ fn test_asciidoc_plantuml_format_generates_two_files() {
     println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
     assert!(expected_output_file_adoc.exists());
     assert!(expected_output_file_puml.exists());
-    //TODO compare the full file content
+    assert_eq!(
+        read_file_content_to_string(&expected_output_file_adoc),
+        expected_asciidoc
+    );
+    assert_eq!(
+        read_file_content_to_string(&expected_output_file_puml),
+        expected_plantuml
+    );
 
     std::fs::remove_file(expected_output_file_adoc).unwrap();
     std::fs::remove_file(expected_output_file_puml).unwrap();
