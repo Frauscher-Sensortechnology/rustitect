@@ -14,15 +14,27 @@ pub struct Processing {
 }
 
 impl Processing {
-    /// Starts the processing of the input based on the provided arguments.
+    /// Processes the provided input based on the arguments contained within the struct.
+    ///
+    /// This function will consider the given arguments and convert the input to
+    /// a desired output format, such as Markdown, AsciiDoc, or a PlantUML diagram.
     ///
     /// # Arguments
     ///
-    /// * `input` - The input string to be processed.
+    /// * `input` - The Rust code string that needs to be processed.
     ///
     /// # Returns
     ///
-    /// The processed output as a string.
+    /// A mapping from the desired output format to the corresponding processed string.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use your_crate::Processing;
+    /// let processing = Processing::new(your_cli_arguments);
+    /// let input_rust_code = "struct Example { field: i32 }";
+    /// let output = processing.start(&input_rust_code);
+    /// ```
     pub fn start(&self, input: &String) -> HashMap<OutputFormat, String> {
         let mut output_buffer = HashMap::new();
         let markdown_output = process_input(input);
@@ -51,6 +63,10 @@ impl Processing {
     }
 }
 
+/// Replaces the PlantUML content within an AsciiDoc string with an include directive.
+/// The embedded PlantUML content will be replaced with the following include directive:
+/// `plantuml::FILENAME.puml[]`
+/// So later on the 'FILENAME' can be replaced with the actual file name of the PUML file.
 fn replace_puml_with_include(asciidoc_string: &str) -> String {
     let replacement = "plantuml::FILENAME.puml[]";
     // This regex will be more flexible in capturing potential whitespace variations.
@@ -60,25 +76,24 @@ fn replace_puml_with_include(asciidoc_string: &str) -> String {
     new_string
 }
 
+/// Retrieves the string content located within the plantuml section.
 fn extract_plantuml_from_asciidoc(asciidoc_output: &str) -> String {
     let start_tag = "@startuml";
     let end_tag = "@enduml";
-    let lines = get_string_within_tags(asciidoc_output, start_tag, end_tag);
-    lines.add(format!("\n{end_tag}\n").as_str())
-}
-
-fn get_string_within_tags(asciidoc_output: &str, start_tag: &str, end_tag: &str) -> String {
-    let mut lines = asciidoc_output
+    let lines = asciidoc_output
         .lines()
         .skip_while(|line| !line.trim().starts_with(start_tag))
         .take_while(|line| !line.trim().starts_with(end_tag))
         .collect::<Vec<&str>>()
         .join("\n");
-    lines.to_string()
+    lines.add(format!("\n{end_tag}\n").as_str())
 }
 
 /// Processes the input content and generates the output content based on the provided only flags.
-/// Returns the output content as a [HashMap] where key is [OutputFormat] and value is [String].
+///
+/// # Returns
+/// A mapping from the desired output format to the corresponding processed string.
+/// The output content as a [HashMap] where key is [OutputFormat] and value is [String].
 fn process_input_only_flags(input: &String, args: &Cli) -> HashMap<OutputFormat, String> {
     let mut output_buffer = HashMap::new();
 
@@ -93,12 +108,15 @@ fn process_input_only_flags(input: &String, args: &Cli) -> HashMap<OutputFormat,
     output_buffer
 }
 
+/// Parses the input Rust code to a PlantUML string representation.
 fn parse_input_to_puml_string(input: &String) -> String {
     let plantuml_parser = PlantumlParser {
         raw_rust_code: String::from(input),
     };
     plantuml_parser.parse_code_to_string()
 }
+
+/// Parses Rust documentation from the input code to a Markdown string representation.
 fn parse_input_to_markdown_string(input: &String) -> String {
     let markdown_parser = RustDocParser {
         raw_rust_code: String::from(input),
@@ -106,8 +124,13 @@ fn parse_input_to_markdown_string(input: &String) -> String {
     markdown_parser.parse_code_doc_to_markdown_string()
 }
 
-/// Processes the input content and generates the output content when no only flag is set.
-/// Returns the output content as a [String].
+/// Processes the input when no `only` flag is set in the provided CLI arguments.
+///
+/// # Arguments
+/// * `input` - The Rust code string to be processed.
+///
+/// # Returns
+/// The processed content as a single string.
 fn process_input(input: &String) -> String {
     let mut output_buffer = String::new();
     let plantuml_parser = PlantumlParser {
