@@ -6,18 +6,26 @@
 //! The application consists of several modules:
 //!
 //! - The `cli` module defines a struct `Cli` for parsing command-line arguments.
-//! - The `plantuml_parser` module provides a function `parse_to_string` that takes a path as input and returns a PlantUML string representation of the Rust code.
-//! - The `asciidoc_generator` module contains a struct `AsciiDocGenerator` that generates arc42 class specifications in Asciidoc format based on the PlantUML string and diagram image.
+//! - The `plantuml_parser` module provides a function `parse_to_string` that takes a path as
+//! input and returns a PlantUML string representation of the Rust code.
+//! - The `rust_doc_parser` module provides a function `parse_code_doc_to_markdown_string` that
+//! takes a path as input and returns a Markdown string representation of the Rust code.
+//! - The `asciidoc_parser` will use the extracted markdown of the `rust_doc_parser` to generate
+//! the representative asciidoc. For this pandoc is used and needs to be installed on the system.
 //!
-//! The `main` function is the entry point of the application. It initializes the logger, parses command-line arguments using `Cli::parse()`, and determines the input source (either from a file or standard input).
+//! The `main` function is the entry point of the application. It initializes the logger, parses
+//! command-line arguments using `Cli::parse()`, and determines the input source (either from a
+//! file or standard input).
 //!
-//! The input is then passed to the `plantuml_parser::parse_to_string` function, which generates a PlantUML string representation of the Rust code.
+//! The input is then passed to the `plantuml_parser::parse_to_string` function, which generates a
+//! PlantUML string representation of the Rust code.
 //!
-//! The PlantUML string is further processed by the `PlantUMLGenerator` from the `plantuml_generator` crate, which generates a diagram image.
+//! # Dependencies
+//! This module relies on various external crates such as `clap`, `regex`, `syn`, `ruml`, `log` and
+//! `env_logger` to function correctly.
 //!
-//! Finally, the `AsciiDocGenerator` from the `asciidoc_generator` crate uses the PlantUML string and diagram image to generate the arc42 class specifications in Asciidoc format, which are printed to the standard output.
-//!
-//! Note: This documentation assumes that the `plantuml_generator` and `asciidoc_generator` crates provide the required functionality for diagram generation and Asciidoc generation, respectively. Please refer to their documentation for more accurate information.
+//! Additionally, the module also utilizes internal modules: `cli`, `model`,
+//! `parser`, and `processing` to carry out its functionalities.
 
 use std::collections::HashMap;
 use std::fs::File;
@@ -39,7 +47,10 @@ mod model;
 mod parser;
 mod processing;
 
-/// The main entry point of the program.
+/// The main entry point of the Rustitect application.
+///
+/// Initializes the logger, processes the command-line arguments, and orchestrates
+/// the reading, processing, and writing of data.
 fn main() {
     env_logger::init();
 
@@ -54,6 +65,11 @@ fn main() {
     write_output(output, &args.output_file);
 }
 
+/// Checks if the 'preserve_names' argument is provided.
+///
+/// If so, ensures that the input isn't coming from stdin, as name preservation
+/// from stdin isn't supported. It also constructs the output file name based on
+/// the input file name and the desired output format.
 fn handle_preserve_names_and_set_output_file(args: &mut Cli) {
     let stdin = PathBuf::from("-");
     if args.preserve_names {
@@ -74,6 +90,7 @@ fn handle_preserve_names_and_set_output_file(args: &mut Cli) {
     }
 }
 
+/// Determines the appropriate file extension based on the specified output format.
 fn get_output_format_extension(format: &OutputFormat) -> &str {
     match format {
         OutputFormat::Asciidoc => ".adoc",
@@ -83,8 +100,7 @@ fn get_output_format_extension(format: &OutputFormat) -> &str {
     }
 }
 
-/// Reads the input from the specified input file or from stdin.
-/// Returns the input content as a string.
+/// Reads the content of the specified file or from stdin if no file is provided.
 fn read_input(input_file: &Option<String>) -> String {
     let mut input_buffer = String::new();
 
@@ -106,7 +122,7 @@ fn read_input(input_file: &Option<String>) -> String {
     input_buffer
 }
 
-/// Writes the output content to the specified output file or to stdout.
+/// Writes the processed output either to the specified file or to stdout.
 fn write_output(output: HashMap<OutputFormat, String>, output_file: &Option<String>) {
     match output_file {
         Some(output_file) => {
