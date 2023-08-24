@@ -5,11 +5,20 @@ use std::{env, io};
 
 use log::error;
 
+/// Utility for parsing and converting text formats, primarily focused on converting
+/// from Markdown to AsciiDoc.
 pub struct AsciidocParser {
     pandoc_path: String,
 }
 
 impl AsciidocParser {
+    /// Creates a new instance of `AsciidocParser`.
+    ///
+    /// # Arguments
+    ///
+    /// `pandoc_path` - An optional path to the `pandoc` executable.
+    /// If `None`, it will look for the `PANDOC_PATH` environment variable.
+    /// If the environment variable is also not set, it defaults to "pandoc".
     pub fn new(pandoc_path: Option<String>) -> Self {
         let pandoc_path = pandoc_path
             .unwrap_or_else(|| env::var("PANDOC_PATH").unwrap_or_else(|_| String::from("pandoc")));
@@ -20,13 +29,21 @@ impl AsciidocParser {
     /// Converts the provided Markdown text to AsciiDoc format.
     ///
     /// # Arguments
-    ///
     /// * `markdown_text` - A string slice that holds the Markdown text to be converted.
     ///
     /// # Returns
-    ///
     /// * `Ok(String)` - The converted AsciiDoc text.
     /// * `Err(Box<dyn Error>)` - An error occurred during the conversion process.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use crate_name::AsciidocParser;
+    /// let parser = AsciidocParser::new(None);
+    /// let markdown_text = "# Title";
+    /// let asciidoc_text = parser.parse_from_markdown(markdown_text);
+    /// assert!(asciidoc_text.is_ok());
+    /// ```
     pub fn parse_from_markdown(&self, markdown_text: &str) -> Result<String, Box<dyn Error>> {
         match self.convert_with_pandoc(markdown_text, Format::Markdown, Format::Asciidoc) {
             Ok(result) => {
