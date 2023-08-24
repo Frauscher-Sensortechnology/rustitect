@@ -11,9 +11,7 @@ use clap::{Args, Parser, ValueEnum};
 /// # Examples
 ///
 /// ```rust
-/// use my_crate::Cli;
 ///
-/// fn main() {
 ///     let args = Cli::parse();
 ///
 ///     if let Some(input_file) = args.input_file {
@@ -33,7 +31,6 @@ use clap::{Args, Parser, ValueEnum};
 ///     } else {
 ///         println!("Generating full documentation.");
 ///     }
-/// }
 /// ```
 ///
 /// In the above example, the `Cli` struct is used to parse the command-line
