@@ -1,4 +1,3 @@
-use log::debug;
 use ruml::file_parser;
 
 /// Represents a parser for converting Rust source code into a format that can be
@@ -37,10 +36,6 @@ impl PlantumlParser {
     /// The above example reads a Rust source file, passes its contents to
     /// `parse_to_string`, and then prints the resulting PlantUML string.
     pub fn parse_code_to_string(&self) -> String {
-        debug!(
-            "Parsing Rust file '{}' to PlantUML string...",
-            self.raw_rust_code
-        );
         let entities = file_parser(
             syn::parse_file(self.raw_rust_code.as_str()).expect("Unable to parse file"),
         );

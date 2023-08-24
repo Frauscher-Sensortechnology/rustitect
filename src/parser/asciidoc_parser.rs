@@ -3,8 +3,6 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 use std::{env, io};
 
-use log::error;
-
 /// Utility for parsing and converting text formats, primarily focused on converting
 /// from Markdown to AsciiDoc.
 pub struct AsciidocParser {
@@ -51,7 +49,7 @@ impl AsciidocParser {
                 Ok(result)
             }
             Err(e) => {
-                error!("Error while converting Markdown to AsciiDoc: {}", e);
+                eprintln!("Error while converting Markdown to AsciiDoc: {}", e);
                 Err(e.into())
             }
         }

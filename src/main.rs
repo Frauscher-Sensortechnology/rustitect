@@ -21,8 +21,8 @@
 //! PlantUML string representation of the Rust code.
 //!
 //! # Dependencies
-//! This module relies on various external crates such as `clap`, `regex`, `syn`, `ruml`, `log` and
-//! `env_logger` to function correctly.
+//! This module relies on various external crates such as `clap`, `regex`, `syn` and an own
+//! version of `ruml` to function correctly.
 //!
 //! Additionally, the module also utilizes internal modules: `cli`, `model`,
 //! `parser`, and `processing` to carry out its functionalities.
@@ -35,7 +35,6 @@ use std::path::{Path, PathBuf};
 
 use clap::error::ErrorKind;
 use clap::{CommandFactory, Parser};
-use log::debug;
 
 use processing::Processing;
 
@@ -49,11 +48,9 @@ mod processing;
 
 /// The main entry point of the Rustitect application.
 ///
-/// Initializes the logger, processes the command-line arguments, and orchestrates
+/// Processes the command-line arguments, and orchestrates
 /// the reading, processing, and writing of data.
 fn main() {
-    env_logger::init();
-
     let mut args = Cli::parse();
 
     handle_preserve_names_and_set_output_file(&mut args);
@@ -107,7 +104,6 @@ fn read_input(input_file: &Option<String>) -> String {
     match input_file {
         Some(input_file) => {
             let input_path = PathBuf::from(input_file);
-            debug!("Input file is: {}", input_path.display());
             let mut file = File::open(input_path).expect("Failed to open input file");
             file.read_to_string(&mut input_buffer)
                 .expect("Failed to read input file");
