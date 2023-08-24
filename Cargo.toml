@@ -5,14 +5,10 @@ edition = "2021"
 authors = ["Kay Fichtelmann <kay.fichtelmann@frauscher.com>"]
 description = "A tool to generate Rust code from a given architecture description"
 
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 log = "0.4"
 env_logger = "0.10"
 ruml = { git = "https://github.com/fichtelmann/ruml.git", branch = "add_methods" }
-regex = "1.5"
 
 [dependencies.clap]
 version = "4.3"
@@ -21,7 +17,15 @@ features = ["derive"]
 [dependencies.syn]
 version = "1.0.5"
 features = [
-    "full",
     "parsing",
     "visit",
+]
+
+[dependencies.regex]
+version = "1"
+default-features = false
+features = [
+    "std",
+    "perf-inline",
+    "perf-literal"
 ]
