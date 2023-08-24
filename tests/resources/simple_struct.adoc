@@ -1,0 +1,30 @@
+== Person
+
+[plantuml]
+----
+@startuml
+
+class "Person" {
+    - name: String
+    - age: u32
+    - is_active: bool
+    + new(name: String, age: u32, is_active: bool)
+    - introduce()
+}
+
+@enduml
+----
+
+Represents a person with a name, age, and activity status.
+
+=== name
+
+The name of the person.
+
+=== age
+
+The age of the person.
+
+=== is_active
+
+Indicates whether the person is currently active or not.

@@ -1,0 +1,17 @@
+== Person
+
+plantuml::simple_struct.puml[]
+
+Represents a person with a name, age, and activity status.
+
+=== name
+
+The name of the person.
+
+=== age
+
+The age of the person.
+
+=== is_active
+
+Indicates whether the person is currently active or not.
