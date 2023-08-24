@@ -1,90 +1,153 @@
 # Rustitect<img src="logo.png" alt="Rustitect Logo" style="width:100px"/>
 
-## Getting started
+A rust-to-arc42 Documentation Generator.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Rustitect is an application designed to generate arc42 class specifications in Asciidoc format from Rust code. It leverages the capabilities of PlantUML to produce clear, concise diagrams.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+---
+## Idea
+Within the [arc42](https://docs.arc42.org/home/) architectural documentation template, it's beneficial to employ the [C4 Model](https://c4model.com/) for elucidating the system's context and its building block view. 
+In the C4 Model, the fourth level (L4) pertains to class diagrams. 
+**Rustitect** is designed with the idea of automating this L4 representation.
 
-## Add your files
+By leveraging Rustitect, developers can automatically generate class diagrams directly from their Rust codebase. 
+When developers commit to writing comprehensive and clear documentation within their code, the descriptions for structs, and other entities, can be seamlessly extracted and integrated into the generated diagrams. 
+This not only promotes a high degree of alignment between code and documentation but also encourages good documentation practices from the onset.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+## Overview
+
+**Rustitect** is a tool designed to generate arc42 class specifications in Asciidoc format from Rust code, incorporating PlantUML diagrams for enhanced visualization. It offers developers a streamlined way to produce detailed documentation without manual effort, right from the codebase.
+
+**Key Features:**
+- **Rust Documentation Parsing**: Using the `RustDocParser`, Rustitect extracts documentation and relevant metadata directly from Rust source code.
+
+- **PlantUML String Generation**: The `PlantumlParser` helps transform Rust structures into a PlantUML string representation, paving the way for visual diagrams.
+
+- **Asciidoc Conversion**: `AsciidocParser` processes the PlantUML string, Rust documentation comments, and metadata, converting it all into an integrated AsciiDoc format. It allows for an embedding of the PlantUML diagrams within the AsciiDoc output, offering a richer documentation experience.
+
+- **CLI Support**: Rustitect's Command-Line Interface (CLI) is intuitive, accepting various arguments to customize the output format and other preferences. Whether you want to parse from a file or standard input, Rustitect has got you covered.
+
+By taking a Rust file as input, Rustitect crafts a comprehensive arc42 documentation structure in AsciiDoc, seamlessly integrating PlantUML diagrams. Developers can leverage this to maintain up-to-date documentation with minimal manual intervention, ensuring that the docs always mirror the current code state.
+
+## Flow Diagram
+
+```mermaid
+sequenceDiagram
+   participant U as User
+   participant Cli as CLI Parser
+   participant P as Processing
+   participant R as RustDocParser
+   participant Pl as PlantumlParser
+participant As as AsciidocParser
+
+note over Cli: rustitect --preserve-names --format asciidoc-plantuml input.rs
+U->>Cli: rustitect [options] [input]
+note over P: input.rs, format: asciidoc-plantuml, preserve-names: true
+Cli-->>P: start()
+activate P
+P->>R: parse(rust_code)
+activate R
+note over R: Extract documentation and relevant metadata from Rust code
+R-->>P: Rust Metadata & Doc comments
+deactivate R
+
+P->>Pl: parse_code_to_string(Rust code)
+activate Pl
+note over Pl: Convert Rust code (and possibly metadata) into PlantUML string
+Pl-->>P: PlantUML string
+deactivate Pl
+
+P->>As: parse(PlantUML string, Rust Metadata & Doc comments)
+activate As
+note over As: Convert PlantUML string, Rust Metadata & Doc comments into AsciiDoc format
+As-->>P: AsciiDoc Output with embedded PlantUML
+deactivate As
+
+P-->>U: Final AsciiDoc Output with PlantUML
+deactivate P
 
 ```
-cd existing_repo
-git remote add origin https://scm01.frauscher.intern/inv/pd/fadc_gw/rustitect.git
-git branch -M main
-git push -uf origin main
-```
 
-## Integrate with your tools
+## Building the Application
 
-- [ ] [Set up project integrations](https://scm01.frauscher.intern/inv/pd/fadc_gw/rustitect/-/settings/integrations)
+Before you can use Rustitect, you'll need to build it from source. Here are the steps to do that:
 
-## Collaborate with your team
+### Prerequisites
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+Ensure you have the following installed:
 
-## Test and Deploy
+- [Rust](https://www.rust-lang.org/tools/install)
+- Cargo (comes with Rust)
+- [Pandoc](https://pandoc.org/installing.html)
 
-Use the built-in continuous integration in GitLab.
+### Steps
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+1. **Clone the Repository**
+2. **Build the Application**
 
-***
+   Using Cargo, the Rust package manager:
 
-# Editing this README
+    ```bash
+    cargo build --release
+    ```
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+   The `--release` flag will build the application in release mode, which will optimize it for performance. The built binaries will be located in the `target/release` directory.
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+3. **(Optional) Add to Path**
 
-## Name
-Choose a self-explaining name for your project.
+   If you wish to run the application from any directory, consider moving the binary to a directory in your system's PATH or add the `target/release` directory to your PATH.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+---
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Basic Usage
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+#### See help
+```bash
+rustitect --help
+```
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+#### Reading from a file and writing to stdout:
+```bash
+$ rustitect path/to/rust_file.rs
+```
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+#### Reading from stdin and writing to stdout:
+```bash
+$ cat path/to/rust_file.rs | rustitect
+```
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+### Advanced Usage
+#### Preserve input file name to output file name (rust_file.adoc):
+```bash
+$ rustitect --preserve-names path/to/rust_file.rs
+```
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+#### Specify output format:
+```bash
+$ rustitect --format=markdown path/to/rust_file.rs
+```
 
+#### Read from stdin, write to a specific file:
+```bash
+$ cat path/to/rust_file.rs | rustitect -o output_file.adoc
+```
+
+#### Separate asciidoc and plantuml files:
+```bash
+rustitect --preserve-names --format asciidoc-plantuml path/to/rust_file.rs
+```
+
+
+## Development
+
+To contribute to Rustitect, please fork the repository and submit a pull request.
+
+---
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Rustitect is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
+
+### Third party licenses (NOTICE)
+Thanks to the great work of the following projects and their licenses, Rustitect is able to provide its functionality (see [NOTICE](./NOTICE) for details):
