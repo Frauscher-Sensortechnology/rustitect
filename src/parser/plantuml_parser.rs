@@ -1,26 +1,27 @@
 use log::debug;
 use ruml::file_parser;
 
-/// A parser for converting Rust code to PlantUML strings.
+/// Represents a parser for converting Rust source code into a format that can be
+/// visualized using PlantUML.
+///
+/// The `PlantumlParser` takes in Rust source code and uses the `ruml` crate
+/// to generate a PlantUML-compatible representation. This representation
+/// can then be used to generate UML diagrams, giving a visual representation
+/// of the Rust source code.
 pub struct PlantumlParser {
-    /// The Rust code to parse.
+    /// The raw Rust source code that will be parsed into a PlantUML-compatible format.
     pub(crate) raw_rust_code: String,
 }
 impl PlantumlParser {
-    /// Parses the given Rust code into a PlantUML string representation.
-    ///
-    /// This method takes a `String` of Rust code, reads the contents of the
-    /// file, parses the syntax using `syn::parse_file`, and then uses
-    /// `ruml` crate to generate a PlantUML string representation of the
-    /// entities in the Rust code.
+    /// Parses Rust source code and generates a PlantUML string representation.
     ///
     /// # Arguments
     ///
-    /// - `raw_rust_code`: A `String` representing the Rust code file to parse.
+    /// - `raw_rust_code`: A string containing the Rust source code to be parsed.
     ///
     /// # Returns
     ///
-    /// A `String` representing the PlantUML string generated from the Rust code.
+    /// A string containing the PlantUML representation of the provided Rust source code.
     ///
     /// # Examples
     ///
@@ -33,9 +34,8 @@ impl PlantumlParser {
     /// println!("{}", plantuml_string);
     /// ```
     ///
-    /// In the above example, the `parse_to_string` method is called on a
-    /// `PlantumlParser` instance with a `String` of Rust code from a file.
-    /// The resulting PlantUML string is then printed to the console.
+    /// The above example reads a Rust source file, passes its contents to
+    /// `parse_to_string`, and then prints the resulting PlantUML string.
     pub fn parse_code_to_string(&self) -> String {
         debug!(
             "Parsing Rust file '{}' to PlantUML string...",
