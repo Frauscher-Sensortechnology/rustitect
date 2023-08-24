@@ -40,6 +40,9 @@ impl Person {
     /// person.introduce();
     /// ```
     fn introduce(&self) {
-        println!("Hi, my name is {} and I'm {} years old.", self.name, self.age);
+        println!(
+            "Hi, my name is {} and I'm {} years old.",
+            self.name, self.age
+        );
     }
 }

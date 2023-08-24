@@ -257,10 +257,10 @@ mod tests {
     fn test_process_input() {
         let cli_mock = create_mock_cli(None, None, false, false, OutputFormat::Asciidoc);
         let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
-        let file_path = std::path::Path::new(&manifest_dir).join("resources/simple_struct.rs");
+        let file_path =
+            std::path::Path::new(&manifest_dir).join("tests/resources/simple_struct.rs");
 
         let mut rust_file = fs::File::open(file_path).expect("File not found.");
-        // let mut rust_file = fs::File::open("resources/simple_struct.rs").expect("File not found."); //Todo remove this line
         let mut raw_rust_code = String::new();
         rust_file
             .read_to_string(&mut raw_rust_code)

@@ -1,0 +1,11 @@
+@startuml
+
+class "Person" {
+    - name: String
+    - age: u32
+    - is_active: bool
+    + new(name: String, age: u32, is_active: bool)
+    - introduce()
+}
+
+@enduml
