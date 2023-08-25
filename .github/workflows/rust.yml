@@ -20,6 +20,8 @@ jobs:
     - uses: actions/checkout@v3
     - run: wget $PANDOC_DEB
     - run: sudo dpkg -i $DEB
+    - name: Verification
+      run: cargo clippy --all-targets --all-features -- -D warnings
     - name: Build
       run: cargo build --verbose
     - name: Run tests
