@@ -17,14 +17,29 @@ class "Person" {
 
 Represents a person with a name, age, and activity status.
 
-=== name
+=== new
 
-The name of the person.
+Creates a new instance of `Person`.
 
-=== age
+==== Arguments
 
-The age of the person.
+* `name` - The name of the person as a String.
+* `age` - The age of the person as a u32.
+* `is_active` - The activity status of the person as a boolean value.
 
-=== is_active
+==== Example
 
-Indicates whether the person is currently active or not.
+....
+let person = Person::new(String::from("John Doe"), 25, true);
+....
+
+=== introduce
+
+Prints a greeting message introducing the person.
+
+==== Example
+
+....
+let person = Person::new(String::from("John Doe"), 25, true);
+person.introduce();
+....

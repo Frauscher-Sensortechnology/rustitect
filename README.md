@@ -139,6 +139,22 @@ $ cat path/to/rust_file.rs | rustitect -o output_file.adoc
 rustitect --preserve-names --format asciidoc-plantuml path/to/rust_file.rs
 ```
 
+## Hints
+### Proper Documentation Structure
+
+When documenting code of your project, it's important to maintain a consistent and clear structure to ensure that the output file is both readable and organized. To achieve this:
+
+- **Use Level Four Headlines**: Begin sections within your documentation with level four headlines, represented by four hash marks (`####`).
+
+Example:
+```markdown
+#### Arguments
+* `name` - The name of the person as a String.
+* `age` - The age of the person as a u32.
+```
+
+By adhering to this guideline, the outcome will be correct structured.
+
 
 ## Development
 

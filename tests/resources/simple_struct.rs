@@ -12,13 +12,13 @@ struct Person {
 impl Person {
     /// Creates a new instance of `Person`.
     ///
-    /// # Arguments
+    /// #### Arguments
     ///
     /// * `name` - The name of the person as a String.
     /// * `age` - The age of the person as a u32.
     /// * `is_active` - The activity status of the person as a boolean value.
     ///
-    /// # Example
+    /// #### Example
     ///
     /// ```
     /// let person = Person::new(String::from("John Doe"), 25, true);
@@ -33,7 +33,7 @@ impl Person {
 
     /// Prints a greeting message introducing the person.
     ///
-    /// # Example
+    /// #### Example
     ///
     /// ```
     /// let person = Person::new(String::from("John Doe"), 25, true);
