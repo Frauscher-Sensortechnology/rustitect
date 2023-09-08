@@ -45,6 +45,7 @@ fn test_main_asciidoc_output_is_correct() {
         .expect("Failed to execute command");
 
     let output_as_string = String::from_utf8_lossy(&output.stdout).replace("\r\n", "\n");
+    println!("''''\n{output_as_string}\n''''");
     assert!(output.status.success());
     assert_eq!(output_as_string, expected_output);
 }

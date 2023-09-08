@@ -1,6 +1,7 @@
 //! A module for parsing Rust code documentation and generating Markdown documentation.
 
-use syn::{Fields, ImplItem, Item, Meta};
+use syn::__private::quote::quote;
+use syn::{Fields, FieldsNamed, ImplItem, Item, Meta};
 
 use crate::model::class_object::{Class, Method};
 
@@ -71,26 +72,11 @@ impl RustDocParser {
 
                     // Collect information about fields and their documentation
                     if let Fields::Named(fields) = &item_struct.fields {
-                        for field in &fields.named {
-                            let method_name = field.ident.as_ref().unwrap().to_string();
-                            let mut method_documentation = String::new();
-
-                            for attribute in &field.attrs {
-                                let meta = attribute.parse_meta().unwrap();
-                                add_name_value_to_documentation(&mut method_documentation, meta);
-                            }
-
-                            let method = Method {
-                                name: method_name,
-                                documentation: method_documentation,
-                            };
-
-                            fields_vector.push(method);
-                        }
+                        fields_vector = collect_fields(fields.clone());
                     }
                 }
                 Item::Impl(item_impl) => {
-                    if !item_impl.trait_.is_some() {
+                    if item_impl.trait_.is_none() {
                         let collected_methods: Vec<Method> = collect_methods(item_impl.items);
                         methods_vector.extend(collected_methods);
                     }
@@ -107,6 +93,26 @@ impl RustDocParser {
         }
     }
 }
+fn collect_fields(fields: FieldsNamed) -> Vec<Method> {
+    let mut fields_vector = Vec::new();
+    for field in &fields.named {
+        let method_name = field.ident.as_ref().unwrap().to_string();
+        let mut fields_documentation = String::new();
+
+        for attribute in &field.attrs {
+            let meta = attribute.parse_meta().unwrap();
+            add_name_value_to_documentation(&mut fields_documentation, meta);
+        }
+
+        let method = Method {
+            name: method_name,
+            documentation: fields_documentation,
+        };
+
+        fields_vector.push(method);
+    }
+    fields_vector
+}
 
 fn collect_methods(impl_items: Vec<ImplItem>) -> Vec<Method> {
     impl_items
@@ -114,8 +120,26 @@ fn collect_methods(impl_items: Vec<ImplItem>) -> Vec<Method> {
         .filter_map(|item| {
             if let ImplItem::Method(method) = item {
                 let method_name = method.sig.ident.to_string();
-                let mut method_documentation = String::new();
+                let parameters: Vec<String> = method
+                    .sig
+                    .inputs
+                    .iter()
+                    .filter_map(|input| match input {
+                        syn::FnArg::Typed(pat_type) => {
+                            let parameter_name = match *pat_type.pat.clone() {
+                                syn::Pat::Ident(pat_ident) => pat_ident.ident.to_string(),
+                                _ => return None,
+                            };
+                            let parameter_type = pat_type.ty.clone();
+                            let parameter_type_string = quote!(#parameter_type).to_string();
+                            Some(format!("{}: {}", parameter_name, parameter_type_string))
+                        }
+                        _ => None,
+                    })
+                    .collect();
+                let method_name = format!("{}({})", method_name, parameters.join(", "));
 
+                let mut method_documentation = String::new();
                 for attribute in &method.attrs {
                     let meta = attribute.parse_meta().unwrap();
                     add_name_value_to_documentation(&mut method_documentation, meta);
@@ -234,11 +258,11 @@ mod tests {
     fn test_parse_code_method_name_and_documentation() {
         let expected_methods = vec![
             class_object::Method {
-                name: "new".to_string(),
+                name: "new(field1: String, field2: String)".to_string(),
                 documentation: "Create a new TestStruct\n".to_string(),
             },
             class_object::Method {
-                name: "another_method".to_string(),
+                name: "another_method()".to_string(),
                 documentation: "Another method\n".to_string(),
             },
         ];
