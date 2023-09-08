@@ -6,11 +6,14 @@ pub struct Class {
     pub name: String,
     /// The documentation for the class.
     pub documentation: String,
+    /// The fields associated with the class.
+    pub fields: Vec<Method>,
     /// The methods associated with the class.
     pub methods: Vec<Method>,
 }
 
 /// Represents a method within a class, including its name and documentation.
+#[derive(Debug, PartialEq)]
 pub struct Method {
     /// The name of the method.
     pub name: String,

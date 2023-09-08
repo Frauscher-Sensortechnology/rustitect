@@ -148,6 +148,12 @@ fn process_input(input: &String) -> String {
     output_buffer.push_str(format!("```plantuml\n{}\n```\n", documentation.plantuml).as_str());
     output_buffer.push_str(format!("\n{}\n", documentation.documentation).as_str());
 
+    //output all fields with its documentation in an markdown list
+    for field in documentation.fields {
+        output_buffer.push_str(format!("\n### {}\n", field.name).as_str());
+        output_buffer.push_str(format!("{}\n", field.documentation).as_str());
+    }
+
     //output each method with its documentation in an markdown list
     for method in documentation.methods {
         output_buffer.push_str(format!("\n### {}\n", method.name).as_str());

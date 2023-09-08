@@ -15,3 +15,30 @@ The age of the person.
 === is_active
 
 Indicates whether the person is currently active or not.
+
+=== new(name: String, age: u32, is_active: bool)
+
+Creates a new instance of `Person`.
+
+==== Arguments
+
+* `name` - The name of the person as a String.
+* `age` - The age of the person as a u32.
+* `is_active` - The activity status of the person as a boolean value.
+
+==== Example
+
+....
+let person = Person::new(String::from("John Doe"), 25, true);
+....
+
+=== introduce()
+
+Prints a greeting message introducing the person.
+
+==== Example
+
+....
+let person = Person::new(String::from("John Doe"), 25, true);
+person.introduce();
+....
