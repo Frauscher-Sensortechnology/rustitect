@@ -1,5 +1,4 @@
-use std::error::Error;
-use std::io::Write;
+use std::io::{Error, ErrorKind, Write};
 use std::process::{Command, Stdio};
 use std::{env, io};
 
@@ -42,14 +41,22 @@ impl AsciidocParser {
     /// let asciidoc_text = parser.parse_from_markdown(markdown_text);
     /// assert!(asciidoc_text.is_ok());
     /// ```
-    pub fn parse_from_markdown(&self, markdown_text: &str) -> Result<String, Box<dyn Error>> {
+    pub fn parse_from_markdown(
+        &self,
+        markdown_text: &str,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         match self.convert_with_pandoc(markdown_text, Format::Markdown, Format::Asciidoc) {
             Ok(result) => {
                 let result = result.replace("[source,plantuml]", "[plantuml]");
                 Ok(result)
             }
             Err(e) => {
-                eprintln!("Error while converting Markdown to AsciiDoc: {}", e);
+                if e.to_string().contains("program not found") {
+                    let error_message = "Pandoc seem not to be installed. \
+                    Please install or define the path to the executable in an \
+                    environment variable PANDOC_PATH.";
+                    return Err(Error::new(ErrorKind::NotFound, error_message).into());
+                }
                 Err(e.into())
             }
         }

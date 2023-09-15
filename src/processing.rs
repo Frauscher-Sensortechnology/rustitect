@@ -44,9 +44,13 @@ impl Processing {
                 output_buffer.insert(OutputFormat::Markdown, markdown_output);
             } else {
                 let ascii_doc_parser = AsciidocParser::new(None);
-                let mut asciidoc_output = ascii_doc_parser
-                    .parse_from_markdown(&markdown_output)
-                    .expect("Failed to parse markdown to asciidoc");
+                let mut asciidoc_output =
+                    match ascii_doc_parser.parse_from_markdown(&markdown_output) {
+                        Ok(asciidoc_string) => asciidoc_string,
+                        Err(e) => {
+                            panic!("Failed to parse markdown to asciidoc: '{}'", e);
+                        }
+                    };
 
                 if self.args.format == OutputFormat::AsciidocPlantuml {
                     let plantuml_code = extract_plantuml_from_asciidoc(&asciidoc_output);
