@@ -147,3 +147,26 @@ fn path_of_project_exe() -> PathBuf {
     path.push(project_name.clone());
     path
 }
+
+#[test]
+fn test_file_name_prefix() {
+    let path = path_of_project_exe();
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+    let input_file_path = Path::new(&manifest_dir).join("tests/resources/simple_struct.rs");
+    let expected_prefix = "MyPrefix_";
+    let expected_output_file =
+        Path::new(&manifest_dir).join(format!("{expected_prefix}simple_struct.adoc").as_str());
+
+    let output = Command::new(path)
+        .args(["--preserve-names"])
+        .args(["--format", "asciidoc"])
+        .args(["-p", expected_prefix])
+        .args(input_file_path.to_str())
+        .output()
+        .expect("Failed to execute command");
+
+    assert!(output.status.success());
+    assert!(expected_output_file.exists());
+
+    std::fs::remove_file(expected_output_file).unwrap();
+}

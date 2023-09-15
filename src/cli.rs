@@ -81,7 +81,8 @@ pub struct Cli {
     #[arg(long)]
     pub preserve_names: bool,
 
-    ///Define a prefix for the output filename. Relly useful in combination with --preserve-names flag.
+    /// Define a prefix for the output filename. Relly useful in combination
+    /// with --preserve-names flag.
     #[arg(short = 'p', long = "prefix", default_value = "")]
     pub file_name_prefix: Option<String>,
 }
