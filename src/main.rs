@@ -59,7 +59,8 @@ fn main() {
     let processing = Processing { args: args.clone() };
     let output = processing.start(&input);
 
-    write_output(output, &args.output_file);
+    let prefix = args.file_name_prefix.expect("File name prefix not set");
+    write_output(output, &args.output_file, prefix);
 }
 
 /// Checks if the 'preserve_names' argument is provided.
@@ -119,7 +120,11 @@ fn read_input(input_file: &Option<String>) -> String {
 }
 
 /// Writes the processed output either to the specified file or to stdout.
-fn write_output(output: HashMap<OutputFormat, String>, output_file: &Option<String>) {
+fn write_output(
+    output: HashMap<OutputFormat, String>,
+    output_file: &Option<String>,
+    file_name_prefix: String,
+) {
     match output_file {
         Some(output_file) => {
             let file_name = Path::new(output_file)
@@ -133,7 +138,7 @@ fn write_output(output: HashMap<OutputFormat, String>, output_file: &Option<Stri
                     content = content.replace("FILENAME", file_name);
                 }
                 let extension = get_output_format_extension(&format);
-                let output_file_name = format!("{}{}", file_name, extension);
+                let output_file_name = format!("{}{}{}", file_name_prefix, file_name, extension);
                 let mut file =
                     File::create(output_file_name).expect("Failed to create output file");
                 file.write_all(content.as_bytes())

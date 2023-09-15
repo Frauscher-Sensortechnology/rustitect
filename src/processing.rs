@@ -202,6 +202,7 @@ mod tests {
             output_file,
             format,
             preserve_names: false,
+            file_name_prefix: Some(String::new()),
         }
     }
 
