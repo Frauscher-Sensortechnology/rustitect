@@ -80,17 +80,21 @@ pub struct Cli {
     /// the output file including the output format
     #[arg(long)]
     pub preserve_names: bool,
+
+    ///Define a prefix for the output filename. Relly useful in combination with --preserve-names flag.
+    #[arg(short = 'p', long = "prefix", default_value = "")]
+    pub file_name_prefix: Option<String>,
 }
 
 #[derive(Args, Clone)]
 #[group(required = false, multiple = false)]
 pub struct OnlyFlags {
     /// Skip the other steps and just generate the PlantUML of the code.
-    #[arg(short, long)]
+    #[arg(long)]
     pub plantuml_only: bool,
 
     /// Skip the other steps and just generate markdown.
-    #[arg(short, long)]
+    #[arg(long)]
     pub markdown_only: bool,
 }
 
